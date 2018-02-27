@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="lib/jquery-1.8.3.min.js"></script>
+</head>
+<body>
+<label for="username">用户名：<input type="text" id="username"></label><br/>
+<label for="password">密码：<input type="password" id="password"></label><br/>
+<button id="submit">注册</button>
+<script>
+    $(function () {
+        $('#submit').click(function () {
+            $.ajax({
+                url:'http://localhost:8081/reg',
+                data:{user:$('#username').val(),pass:$('#password').val()},
+                dataType:'jsonp',
+                success:function (res) {
+                    if (res.code) {
+                        alert('注册失败!'+res.msg);
+                    } else{
+                        alert('注册成功！');
+                    }
+                },
+                error:function (XMLHTTPRequest,textStatus,errorThrown) {
+                    console.log(XMLHTTPRequest.readyState, XMLHTTPRequest.status);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+//                    alert('注册失败，网络不通！');
+                }
+            })
+        });
+    })
+</script>
+</body>
+</html>

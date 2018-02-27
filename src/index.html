@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<label for="usr">用户名：<input type="text" id="usr" minlength="6" maxlength="12"></label>
+<label for="pass">密码：<input type="password" id="pass" minlength="6" maxlength="12"></label>
+<input type="button" value="注册" id="reg">
+<input type="button" value="登录" id="loggin">
+<hr>
+<textarea name="" id="txt1" cols="80" rows="10"></textarea>
+<input type="button" value="发送" id="send">
+<ul id="txt_box">
+    <!--<li>
+        <h4>今日见闻</h4>
+        <p>楚天府和玛莎拉蒂结义了</p>
+    </li>-->
+</ul>
+</body>
+<script src="../lib/jquery-1.8.3.min.js"></script>
+<script src="http://localhost:8081/socket.io/socket.io.js"></script>
+<script>
+    $(function () {
+//        一段
+        /* function doAjax(url, msg) {
+         let user = $('#usr').val();
+         let pass = $('#pass').val();
+         $.ajax({
+         url: url,
+         data: {
+         username: user,
+         password: pass
+         },
+         dataType: 'jsonp',
+         success: function (data) {
+         if (data.code) {
+         alert(msg + '失败' + data.msg);
+         } else {
+         alert(msg + '成功！');
+         }
+         },
+         error: function () {
+         alert(msg + '失败，网络故障！');
+         }
+         })
+         }
+
+         $('#reg').click(function () {
+         let user = $('#usr').val();
+         let pass = $('#pass').val();
+         $.ajax({
+         url: 'http://localhost:8081/reg',
+         data: {
+         username: user,
+         password: pass
+         },
+         dataType: 'jsonp',
+         success: function (data) {
+         if (data.code) {
+         alert('注册失败' + data.msg);
+         } else {
+         alert('注册成功！');
+         }
+         },
+         error: function () {
+         alert('注册失败，网络故障！');
+         }
+         })
+         });
+         $('#loggin').click(function () {
+         let user = $('#usr').val();
+         let pass = $('#pass').val();
+         $.ajax({
+         url: 'http://localhost:8081/loggin',
+         data: {
+         username: user,
+         password: pass
+         },
+         dataType: 'jsonp',
+         success: function (data) {
+         if (data.code) {
+         alert('登录失败' + data.msg);
+         } else {
+         alert('登录成功！');
+         }
+         },
+         error: function () {
+         alert('登录失败，网络故障！');
+         }
+         })
+         })*/
+
+//       二段ws
+        let sock = io.connect('ws://localhost:8081/');
+        let txtBox = $('#txt1');
+        let cur_username = '';
+//        定义绑定事件函数
+        function bindSock(id) {
+            $('#' + id).click(function () {
+                let user = $('#usr').val();
+                let pass = $('#pass').val();
+                sock.emit(id, user, pass);
+            });
+        }
+
+//        把接收放到外面，以免重复绑定事件
+//        注册
+        sock.on('reg_ret', (code, msg) => {
+            if (code) {
+                alert('注册失败' + msg);
+            } else {
+                alert('注册成功');
+            }
+        });
+//        登录
+        sock.on('loggin_ret', (code, msg) => {
+            if (code) {
+                alert('登录失败' + msg);
+            } else {
+                alert('登录成功');
+                cur_username = $('#usr').val();
+            }
+        });
+//        消息
+//        把当前用户的消息发给服务器
+        $('#loggin').click(function () {
+            sock.on('msg_ret', (code, msg) => {
+                if (code) {
+                    alert('消息发送失败' + msg);
+                } else {
+                    $('#txt_box').append(`<li><h4>${cur_username}</h4><p>${txtBox.val()}</p></li>`);
+                    txtBox.val('');
+                }
+            });
+//        后台给其他人发消息
+            sock.on('msg', (name, txt) => {
+                $('#txt_box').append(`<li><h4>${name}</h4><p>${txt}</p></li>`);
+            });
+            $('#send').click(function () {
+                sock.emit('msg', txtBox.val());
+            });
+        });
+
+        bindSock('reg');
+        bindSock('loggin');
+    })
+</script>
+</html>
+
